@@ -1,10 +1,11 @@
 import "dotenv/config.js";
-
+import cors from "cors";
 import express from "express";
 import { validate } from "./database/connection.js";
 import router from "./router.js";
 import httpErrorResponse from "./middlewares/httpErrorResponse.js";
 const app = express();
+app.use(cors());
 app.use(express.json());
 const { PORT } = process.env;
 (async () => {

@@ -1,14 +1,18 @@
 import Users from "../database/models/Users.js";
 import ErrorSearch from "../errors/ErrorSearch.js";
 import ErrorUnauthorized from "../errors/ErrorUnauthorized.js";
-import { usersSchema, loginSchema } from "../schemas/usersSchema.js";
+import {
+  usersSchema,
+  loginSchema,
+  usersUpdate
+} from "../schemas/usersSchema.js";
 import bcrypt from "bcryptjs";
 import { generateJWT } from "../utils.js";
 
 async function getUser(req, resp, next) {
   try {
     const { _id } = req.params;
-    let user = await Users.findById(_id).populate("nacionalities");
+    let user = await Users.findById(_id).select("-password");
     if (!user) {
       throw new ErrorSearch("User not found!");
     }
@@ -20,7 +24,7 @@ async function getUser(req, resp, next) {
 }
 async function getUsers(req, resp, next) {
   try {
-    const users = await Users.find();
+    const users = await Users.find().select("-password");
     return resp.status(200).json(users);
   } catch (error) {
     next(error);
@@ -29,11 +33,10 @@ async function getUsers(req, resp, next) {
 async function loginUser(req, resp, next) {
   try {
     await loginSchema.validateAsync(req.body);
-    const { email, username, password } = req.body;
-    let search = {};
-    if (email) search.email = email;
-    if (username) search.username = username;
-    let user = await Users.findOne(search);
+    const { login, password } = req.body;
+    let user = await Users.findOne({
+      $or: [{ email: login }, { username: login }]
+    });
     if (!user) {
       throw new ErrorSearch("User not found!");
     }
@@ -75,7 +78,7 @@ async function createUser(req, resp, next) {
 async function updateUser(req, resp, next) {
   try {
     const { _id } = req.params;
-    await usersSchema.validateAsync(req.body);
+    await usersUpdate.validateAsync(req.body);
     let user = await Users.findById(_id);
     if (!user) {
       throw new ErrorSearch("User not found!");

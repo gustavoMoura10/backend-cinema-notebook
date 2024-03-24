@@ -6,7 +6,7 @@ import { decodeJWT } from "../utils.js";
 async function jwtToken(req, resp, next) {
   try {
     const authorization =
-      req.headers["authorization"] || req.headers["Authorization"];
+      req.headers["authorization"] || req.headers["Authorization"] || "";
     const token = `${authorization}`.split("Bearer").pop().trim();
     if (!token) {
       throw new ErrorUnauthorized("Missing Authorization Token");
